@@ -1,17 +1,24 @@
 services:
   node-red:
-    image: nodered/node-red:latest
+    build: . # Ele vai buildar sua imagem customizada
+    image: advec-automation:latest
     container_name: node-red-advec
     restart: always
     ports:
-      - "1880:1880"
-    volumes:
-      - ./data:/data
+      - "1881:1880"
     environment:
       - TZ=America/Sao_Paulo
-      - NODE_RED_ENABLE_PROJECTS=true # Ativa integração nativa com Git
+      - GOOGLE_APPLICATION_CREDENTIALS=/secrets/google-creds.json
+    volumes:
+      # Volume apenas para dados que mudam em runtime (logs, contexto)
+      # e para injetar o segredo do Google que não deve ir pro Git
+      - ./data/google-creds.json:/secrets/google-creds.json:ro
+      - node_red_data_v5:/data
     networks:
       - media-net
+
+volumes:
+  node_red_data_v5:
 
 networks:
   media-net:
