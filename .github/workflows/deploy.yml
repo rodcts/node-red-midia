@@ -1,88 +1,88 @@
 name: 🚀 Deploy to OCI Production
 
 on:
-  push:
-    branches: [ main ]
-  # Permite acionar o workflow manualmente pela interface do GitHub
-  workflow_dispatch:
+    push:
+        branches: [main]
+    # Permite acionar o workflow manualmente pela interface do GitHub
+    workflow_dispatch:
 
 # Evita concorrência: cancela um deploy em andamento se um novo push for feito
 concurrency:
-  group: production-deploy
-  cancel-in-progress: true
+    group: production-deploy
+    cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: 🛠️ Build & Deploy
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    deploy:
+        name: 🛠️ Build & Deploy
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
 
-    steps:
-      - name: 📦 Checkout Code
-        uses: actions/checkout@v4
+        steps:
+            - name: 📦 Checkout Code
+              uses: actions/checkout@v4
 
-      - name:  SRE Pre-flight Checks
-        run: |
-          echo "### 🔍 Verificando Validade de Credenciais" >> $GITHUB_STEP_SUMMARY
+            - name: SRE Pre-flight Checks
+              run: |
+                  echo "### 🔍 Verificando Validade de Credenciais" >> $GITHUB_STEP_SUMMARY
 
-          check_secret() {
-            if [ -z "$1" ]; then
-              echo "❌ **$2**: AUSENTE" >> $GITHUB_STEP_SUMMARY
-              echo "::error::Secret $2 está ausente! Configure no GitHub."
-              exit 1
-            else
-              echo "✅ **$2**: OK" >> $GITHUB_STEP_SUMMARY
-            fi
-          }
+                  check_secret() {
+                    if [ -z "$1" ]; then
+                      echo "❌ **$2**: AUSENTE" >> $GITHUB_STEP_SUMMARY
+                      echo "::error::Secret $2 está ausente! Configure no GitHub."
+                      exit 1
+                    else
+                      echo "✅ **$2**: OK" >> $GITHUB_STEP_SUMMARY
+                    fi
+                  }
 
-          check_secret "${{ secrets.OCI_HOST }}" "OCI_HOST"
-          check_secret "${{ secrets.OCI_SSH_KEY }}" "OCI_SSH_KEY"
+                  check_secret "${{ secrets.OCI_HOST }}" "OCI_HOST"
+                  check_secret "${{ secrets.OCI_SSH_KEY }}" "OCI_SSH_KEY"
 
-          if [ -z "${{ secrets.OCI_USER }}" ]; then
-            echo "⚠️ **OCI_USER**: VAZIO (Utilizando fallback 'ubuntu')" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ **OCI_USER**: Customizado" >> $GITHUB_STEP_SUMMARY
-          fi
+                  if [ -z "${{ secrets.OCI_USER }}" ]; then
+                    echo "⚠️ **OCI_USER**: VAZIO (Utilizando fallback 'ubuntu')" >> $GITHUB_STEP_SUMMARY
+                  else
+                    echo "✅ **OCI_USER**: Customizado" >> $GITHUB_STEP_SUMMARY
+                  fi
 
-      - name: 🚢 Executar Deploy via SSH (OCI)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.OCI_HOST }}
-          username: ${{ secrets.OCI_USER || 'ubuntu' }}
-          key: ${{ secrets.OCI_SSH_KEY }}
-          port: 22
-          script_stop: true # Para a execução imediatamente se qualquer comando falhar (set -e)
-          script: |
-            echo "========================================="
-            echo "🚀 INICIANDO DEPLOY AUTOMATIZADO"
-            echo "========================================="
+            - name: 🚢 Executar Deploy via SSH (OCI)
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.OCI_HOST }}
+                  username: ${{ secrets.OCI_USER }}
+                  key: ${{ secrets.OCI_SSH_KEY }}
+                  port: 22
+                  script_stop: true # Para a execução imediatamente se qualquer comando falhar (set -e)
+                  script: |
+                      echo "========================================="
+                      echo "🚀 INICIANDO DEPLOY AUTOMATIZADO"
+                      echo "========================================="
 
-            cd ~/advec-automation
+                      cd ~/advec-automation
 
-            echo "📥 1/4 Atualizando código fonte (Sync com origin/main)..."
-            git fetch origin main
-            git reset --hard origin/main
+                      echo "📥 1/4 Atualizando código fonte (Sync com origin/main)..."
+                      git fetch origin main
+                      git reset --hard origin/main
 
-            echo "🛑 2/4 Derrubando serviços em execução..."
-            docker compose down || true
+                      echo "🛑 2/4 Derrubando serviços em execução..."
+                      docker compose down || true
 
-            echo "🏗️ 3/4 Compilando nova imagem e subindo containers..."
-            docker compose up -d --build
+                      echo "🏗️ 3/4 Compilando nova imagem e subindo containers..."
+                      docker compose up -d --build
 
-            echo "🧹 4/4 Limpeza: Removendo imagens antigas para liberar espaço..."
-            docker image prune -af
+                      echo "🧹 4/4 Limpeza: Removendo imagens antigas para liberar espaço..."
+                      docker image prune -af
 
-            echo "========================================="
-            echo "✅ DEPLOY EFETUADO COM SUCESSO!"
+                      echo "========================================="
+                      echo "✅ DEPLOY EFETUADO COM SUCESSO!"
 
-      - name: 🩺 Healthcheck & Container Status
-        if: success()
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.OCI_HOST }}
-          username: ${{ secrets.OCI_USER || 'ubuntu' }}
-          key: ${{ secrets.OCI_SSH_KEY }}
-          port: 22
-          script: |
-            echo "### Status Atual dos Containers na OCI:"
-            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep node-red || true
+            - name: 🩺 Healthcheck & Container Status
+              if: success()
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.OCI_HOST }}
+                  username: ${{ secrets.OCI_USER || 'ubuntu' }}
+                  key: ${{ secrets.OCI_SSH_KEY }}
+                  port: 22
+                  script: |
+                      echo "### Status Atual dos Containers na OCI:"
+                      docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep node-red || true
