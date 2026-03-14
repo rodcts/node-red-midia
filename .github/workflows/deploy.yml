@@ -11,6 +11,15 @@ jobs:
             - name: Checkout Code
               uses: actions/checkout@v4 # Recomendo atualizar para v4
 
+            - name: Check if secrets are set
+              run: |
+                if [ -z "${{ secrets.OCI_HOST }}" ]; then
+                    echo "OCI_HOST IS MISSING"
+                    exit 1
+                else
+                    echo "OCI_HOST IS FOUND"
+                fi
+
             - name: Deploy via SSH
               uses: appleboy/ssh-action@v1.0.3 # Use versão fixa em vez de master
               with:
