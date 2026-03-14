@@ -44,63 +44,31 @@ jobs:
                     echo "✅ **OCI_USER**: Customizado" >> $GITHUB_STEP_SUMMARY
                   fi
 
-            - name: 🚢 Executar Deploy via SSH (OCI)
+            - name: 🚢 Executar Deploy e Monitorar Logs
               uses: appleboy/ssh-action@v1.0.3
               with:
                   host: ${{ secrets.OCI_HOST }}
-                  username: ${{ secrets.OCI_USER }}
+                  username: ${{ secrets.OCI_USER || 'ubuntu' }}
                   key: ${{ secrets.OCI_SSH_KEY }}
                   port: 22
-                  script_stop: true # Para a execução imediatamente se qualquer comando falhar (set -e)
-
+                  # CRITICAL: Habilita o streaming de saída em tempo real
+                  debug: true
+                  script_stop: true
                   script: |
-                      echo "========================================="
-                      echo "🕵️ DETECTANDO SISTEMA OPERACIONAL"
-                      echo "========================================="
-
-                      if command -v dnf &> /dev/null; then
-                          INSTALL="sudo dnf install -y"
-                          UPDATE="sudo dnf makecache"
-                          echo "🐧 Sistema detectado: Oracle Linux / RHEL"
-                      elif command -v apt-get &> /dev/null; then
-                          INSTALL="sudo apt-get install -y"
-                          UPDATE="sudo apt-get update"
-                          echo "🐧 Sistema detectado: Ubuntu / Debian"
-                      else
-                          echo "❌ Gerenciador de pacotes não suportado!"
-                          exit 1
-                      fi
-
-                      echo "📦 INSTALANDO TOOLCHAIN DEVOPS..."
-                      $UPDATE
-                      $INSTALL git curl jq tar gzip ca-certificates
-
-                      echo "🐋 CONFIGURANDO DOCKER (Automático)..."
-                      if ! command -v docker &> /dev/null; then
-                          curl -fsSL https://get.docker.com | sudo sh
-                          sudo systemctl enable --now docker
-                          sudo usermod -aG docker $USER
-                      fi
-
-                      echo "📂 PREPARANDO AMBIENTE DO PROJETO..."
-                      mkdir -p ~/advec-automation/data
                       cd ~/advec-automation
 
-                      if [ ! -d ".git" ]; then
-                      echo "🚚 Clonando repositório..."
-                      git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
-                      fi
-
-                      echo "📥 SINCRONIZANDO CÓDIGO..."
-                      git fetch origin ${{ github.ref_name }}
-                      git reset --hard origin/${{ github.ref_name }}
-
-                      echo "🚀 SUBINDO CONTAINERS..."
-                      # Forçamos o uso do binário do docker-compose independente da distro
+                      echo "🏗️ 1/2 Iniciando Build e Up (Acompanhe abaixo)..."
+                      # O comando 'up' com --build mostra o log de compilação do Dockerfile
                       sudo docker compose up -d --build
 
+                      echo "⏳ 2/2 Aguardando 15s para validar o startup do container..."
+                      # O truque do SRE: tail nos logs por X segundos e depois encerra o passo
+                      # Isso permite ver se o Node-RED subiu sem erros de permissão ou conexão
+                      sudo timeout 15s docker logs -f node-red-advec || true
+
                       echo "========================================="
-                      echo "✅ INFRA E DEPLOY CONCLUÍDOS!"
+                      echo "✅ STATUS FINAL DOS CONTAINERS:"
+                      sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
                       echo "========================================="
 
             - name: 🩺 Healthcheck & Container Status
@@ -111,6 +79,7 @@ jobs:
                   username: ${{ secrets.OCI_USER || 'ubuntu' }}
                   key: ${{ secrets.OCI_SSH_KEY }}
                   port: 22
+                  debug: true
                   script: |
                       echo "### Status Atual dos Containers na OCI:"
                       docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep node-red || true
