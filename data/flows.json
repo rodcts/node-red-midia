@@ -1,0 +1,721 @@
+[
+    {
+        "id": "3f62f077a3c1d3f6",
+        "type": "tab",
+        "label": "Escala Midia",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "fdf35e042a55ab7c",
+        "type": "function",
+        "z": "3f62f077a3c1d3f6",
+        "name": "RN1",
+        "func": "// Normalização de Identidade (Padrão SRE)\nconst rawUsername = msg.payload.username || \"\";\nconst cleanedId = rawUsername.trim().toLowerCase().replace('@', '');\n\n// Preservar o payload original para uso posterior\nmsg.originalData = msg.payload;\nmsg.cleanedId = cleanedId;\n\n// Preparar busca na Aba B (Coluna H - Username Telegram)\nmsg.searchParams = {\n    spreadsheetId: \"1sXAPfdYrtV2ukWFTeOmErBq0FxotM05t67-OSoig284\",\n    sheetName: \"State Store\",\n    column: \"H\",\n    value: cleanedId\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 180,
+        "wires": [
+            [
+                "38a2759d78027975",
+                "90c32b705e406b13"
+            ]
+        ]
+    },
+    {
+        "id": "68d12e01ddb3e2b1",
+        "type": "debug",
+        "z": "3f62f077a3c1d3f6",
+        "name": "http in",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 230,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "3a30dce1ed06767f",
+        "type": "comment",
+        "z": "3f62f077a3c1d3f6",
+        "name": "1. Gatekeeper",
+        "info": "### event-driven archtecture",
+        "x": 110,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "637be61a2da23d53",
+        "type": "comment",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "3. The Collector",
+        "info": "",
+        "x": 120,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "6321693c075d1aa8",
+        "type": "GSheet",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "creds": "",
+        "method": "",
+        "action": "",
+        "sheet": "",
+        "cells": "",
+        "name": "",
+        "x": 320,
+        "y": 760,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c43cf38ac4a743a2",
+        "type": "function",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "function 2",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 800,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fdac7ee9040e24ee",
+        "type": "debug",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 320,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "4b96a1cc8e3866a0",
+        "type": "debug",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 320,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "3ad2f1df849d63d0",
+        "type": "comment",
+        "z": "3f62f077a3c1d3f6",
+        "name": "4. The Brain",
+        "info": "",
+        "x": 110,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "26ffa372fb1ec4a0",
+        "type": "GSheet",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "creds": "",
+        "method": "",
+        "action": "",
+        "sheet": "",
+        "cells": "",
+        "name": "",
+        "x": 580,
+        "y": 1240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c85c566d0b8a39f0",
+        "type": "function",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "function 3",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 1160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "985e0dc299331393",
+        "type": "http request",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "persist": false,
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 530,
+        "y": 1160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2ceac5b79925ba3c",
+        "type": "json",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 690,
+        "y": 1160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1e01a3af9ce121fc",
+        "type": "GSheet",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "creds": "",
+        "method": "",
+        "action": "",
+        "sheet": "",
+        "cells": "",
+        "name": "",
+        "x": 820,
+        "y": 1160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d9a940ec9eced8cc",
+        "type": "catch",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 520,
+        "y": 700,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6f2415f99fadb666",
+        "type": "catch",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 500,
+        "y": 1100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7af21eccbb822f02",
+        "type": "http in",
+        "z": "3f62f077a3c1d3f6",
+        "name": "",
+        "url": "/v1/voluntarios/ingest",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 160,
+        "wires": [
+            [
+                "68d12e01ddb3e2b1",
+                "52ba1e28a841e1c9"
+            ]
+        ]
+    },
+    {
+        "id": "77de3cc0dcb803e2",
+        "type": "switch",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "roteador",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "null"
+            },
+            {
+                "t": "empty"
+            },
+            {
+                "t": "eq",
+                "v": "undefined",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 1060,
+        "y": 220,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "8f5209a81e826f5b",
+        "type": "telegram sender",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "bot": "",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1020,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "07d44e67573ae82b",
+        "type": "telegram receiver",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "bot": "143b4b02adfcba1b",
+        "saveDataDir": "",
+        "filterCommands": false,
+        "hasinput": false,
+        "inputs": 0,
+        "handleallupdates": false,
+        "x": 120,
+        "y": 420,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "f0f88c33b17289ae",
+        "type": "comment",
+        "z": "3f62f077a3c1d3f6",
+        "name": "2. The Linker",
+        "info": "",
+        "x": 110,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "6c0c257673fc8e14",
+        "type": "GSheet",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "creds": "",
+        "method": "",
+        "action": "",
+        "sheet": "",
+        "cells": "",
+        "name": "",
+        "x": 420,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "523303c50d25cc07",
+        "type": "function",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "function 1",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 240,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "65987d144198792f",
+        "type": "telegram sender",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "bot": "",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 600,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f338f0d873fb6f65",
+        "type": "debug",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 280,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "e9c3820d465be596",
+        "type": "catch",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 480,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3a3dbe69ff9f7cbe",
+        "type": "inject",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 760,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9e868767045356b0",
+        "type": "inject",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 1140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1df4aa4414306018",
+        "type": "gemini-generate-content",
+        "z": "3f62f077a3c1d3f6",
+        "d": true,
+        "name": "",
+        "apiKey": "",
+        "modelSelection": "gemini-2.5-flash",
+        "customModel": "",
+        "customModelType": "str",
+        "mode": "single",
+        "prompt": "",
+        "promptType": "str",
+        "multimodalInputsData": "[]",
+        "grounding": false,
+        "temperature": "",
+        "temperatureType": "num",
+        "topP": "",
+        "topPType": "num",
+        "topK": "",
+        "topKType": "num",
+        "maxOutputTokens": "",
+        "maxOutputTokensType": "num",
+        "safetyHarassment": "",
+        "safetyHateSpeech": "",
+        "safetySexuallyExplicit": "",
+        "safetyDangerousContent": "",
+        "thinkingBudget": "",
+        "thinkingBudgetType": "num",
+        "thinkingLevel": "",
+        "thinkingLevelType": "str",
+        "includeThoughts": false,
+        "systemInstruction": "",
+        "systemInstructionType": "str",
+        "outputProperty": "payload",
+        "passthroughProperties": false,
+        "responseFormat": "text",
+        "schemaPropertiesData": "[]",
+        "enumValues": "",
+        "x": 390,
+        "y": 1240,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "19238b68a7327e14",
+        "type": "function",
+        "z": "3f62f077a3c1d3f6",
+        "name": "RN2",
+        "func": "// Sanitização Padrão SRE\nconst rawUser = msg.payload.username || \"\";\nconst cleanedId = rawUser.trim().toLowerCase().replace('@', '');\n\n// Prepara o envelope de dados para o Google Sheets\n// Mapeado conforme as colunas da sua Aba B\nmsg.payload = [\n    msg.payload.nome,      // Coluna A\n    \"Ativo\",               // Coluna B\n    \"Pendente\",            // Coluna C\n    msg.payload.papeis,    // Coluna D\n    \"1\",                   // Coluna E (Nível inicial)\n    \"Não\",                 // Coluna F (Disponibilidade)\n    new Date(),            // Coluna G (Timestamp)\n    cleanedId              // Coluna H (ID Sanitizado)\n];\n\n// Metadados para o próximo nó (GSheets Append)\nmsg.spreadsheetId = \"1sXAPfdYrtV2ukWFTeOmErBq0FxotM05t67-OSoig284\";\nmsg.sheetName = \"State Store\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 300,
+        "wires": [
+            [
+                "d17fcd788222b3d4"
+            ]
+        ]
+    },
+    {
+        "id": "cc8d949558cffb4d",
+        "type": "debug",
+        "z": "3f62f077a3c1d3f6",
+        "name": "sheets read",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 510,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "38a2759d78027975",
+        "type": "debug",
+        "z": "3f62f077a3c1d3f6",
+        "name": "rules business 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "52ba1e28a841e1c9",
+        "type": "google-sheets-to-json-stream",
+        "z": "3f62f077a3c1d3f6",
+        "config": "24703ff45f227e29",
+        "sheetId": "1sXAPfdYrtV2ukWFTeOmErBq0FxotM05t67-OSoig284",
+        "sheetList": "State Store",
+        "sheetListValues": "[{\"text\":\"State Store\",\"value\":\"State Store\",\"selected\":true},{\"text\":\"Inbound\",\"value\":\"Inbound\",\"selected\":false},{\"text\":\"Events Day\",\"value\":\"Events Day\",\"selected\":false}]",
+        "range": "A1:R1003",
+        "columns": "[\"Nome\",\"Status\",\"Confiabilidade\",\"Papeis\",\"Nivel\",\"Disponivel\",\"Ultimo Voluntariado\",\"Username Telegram\",\"ID Telegram\"]",
+        "name": "",
+        "x": 490,
+        "y": 180,
+        "wires": [
+            [
+                "cc8d949558cffb4d",
+                "fdf35e042a55ab7c"
+            ]
+        ]
+    },
+    {
+        "id": "90c32b705e406b13",
+        "type": "GSheet",
+        "z": "3f62f077a3c1d3f6",
+        "creds": "793970716eb6c584",
+        "method": "update",
+        "action": "",
+        "sheet": "1sXAPfdYrtV2ukWFTeOmErBq0FxotM05t67-OSoig284",
+        "cells": "",
+        "flatten": false,
+        "name": "",
+        "x": 730,
+        "y": 300,
+        "wires": [
+            [
+                "19238b68a7327e14",
+                "b54bef4481ac4e98"
+            ]
+        ]
+    },
+    {
+        "id": "b54bef4481ac4e98",
+        "type": "debug",
+        "z": "3f62f077a3c1d3f6",
+        "name": "sheets update",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "d17fcd788222b3d4",
+        "type": "debug",
+        "z": "3f62f077a3c1d3f6",
+        "name": "rules business 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 960,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "143b4b02adfcba1b",
+        "type": "telegram bot",
+        "botname": "@MidiaIABot",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "24703ff45f227e29",
+        "type": "google-sheets-config",
+        "name": "nodered-sheets-operator@node-red-midia.iam.gserviceaccount.com"
+    },
+    {
+        "id": "793970716eb6c584",
+        "type": "gauth",
+        "name": "nodered-sheets-operator@node-red-midia.iam.gserviceaccount.com"
+    },
+    {
+        "id": "660237d44e5cbc8f",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-google-sheets": "1.1.2",
+            "node-red-contrib-telegrambot": "17.1.0",
+            "node-red-contrib-gemini": "1.0.3",
+            "nodered-contrib-google-sheets-to-json-stream": "1.0.4"
+        }
+    }
+]
