@@ -3,32 +3,27 @@ name: Deploy to Oracle Cloud
 on:
     push:
         branches: [main]
-
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v4 # Recomendo atualizar para v4
+  deploy:
+    runs-on: ubuntu-latest
+    # ESSA É A LINHA QUE ESTÁ FALTANDO:
+    # Substitua 'NOME_DO_SEU_AMBIENTE' pelo nome exato que está no GitHub Settings
+    environment: oracle
 
-            - name: Check if secrets are set
-              run: |
-                if [ -z "${{ secrets.OCI_HOST }}" ]; then
-                    echo "OCI_HOST IS MISSING"
-                    exit 1
-                else
-                    echo "OCI_HOST IS FOUND"
-                fi
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-            - name: Deploy via SSH
-              uses: appleboy/ssh-action@v1.0.3 # Use versão fixa em vez de master
-              with:
-                  host: ${{ secrets.OCI_HOST }}
-                  username: ubuntu
-                  key: ${{ secrets.OCI_SSH_KEY }}
-                  script: |
-                      cd ~/advec-automation
-                      git pull origin main
-                      docker compose down
-                      docker compose up -d --build
-                      docker image prune -f
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3 # Recomendo usar v1.0.3 para estabilidade
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY }}
+          port: 22
+          script: |
+            cd ~/advec-automation
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
+            docker image prune -f
