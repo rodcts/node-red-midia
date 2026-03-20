@@ -1,88 +1,99 @@
-name: 🚀 Deploy to OCI Production
+name: 🚀 Matrix Deploy to OCI (Mission Critical)
 
 on:
   push:
-    branches: [ main ]
-  # Permite acionar o workflow manualmente pela interface do GitHub
+    branches: [main]
   workflow_dispatch:
 
-# Evita concorrência: cancela um deploy em andamento se um novo push for feito
 concurrency:
   group: production-deploy
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: 🛠️ Build & Deploy
+  deploy-production:
+    name: 🛠️ Deploy [${{ matrix.environment }}]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+
+    strategy:
+      fail-fast: false # Garante que se um nó falhar, o log do outro continue visível
+      matrix:
+        include:
+          - environment: "OCI-Node-01"
+            host_secret: OCI_HOST
+            port: 1880 # Porta do seu Node-RED ou App
 
     steps:
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
-      - name:  SRE Pre-flight Checks
+      - name: 🔍 SRE Pre-flight & Secrets Audit
         run: |
-          echo "### 🔍 Verificando Validade de Credenciais" >> $GITHUB_STEP_SUMMARY
+          echo "### 🛡️ Auditoria de Segurança e Ambiente" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ambiente:** ${{ matrix.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner:** $RUNNER_OS" >> $GITHUB_STEP_SUMMARY
 
-          check_secret() {
-            if [ -z "$1" ]; then
-              echo "❌ **$2**: AUSENTE" >> $GITHUB_STEP_SUMMARY
-              echo "::error::Secret $2 está ausente! Configure no GitHub."
-              exit 1
-            else
-              echo "✅ **$2**: OK" >> $GITHUB_STEP_SUMMARY
-            fi
-          }
-
-          check_secret "${{ secrets.OCI_HOST }}" "OCI_HOST"
-          check_secret "${{ secrets.OCI_SSH_KEY }}" "OCI_SSH_KEY"
-
-          if [ -z "${{ secrets.OCI_USER }}" ]; then
-            echo "⚠️ **OCI_USER**: VAZIO (Utilizando fallback 'ubuntu')" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ **OCI_USER**: Customizado" >> $GITHUB_STEP_SUMMARY
+          if [ -z "${{ secrets[matrix.host_secret] }}" ]; then
+            echo "::error::Host Secret ${{ matrix.host_secret }} não configurada!"
+            exit 1
           fi
 
-      - name: 🚢 Executar Deploy via SSH (OCI)
+      - name: 🚢 Executar Deploy & Runtime Mapping
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.OCI_HOST }}
+          host: ${{ secrets[matrix.host_secret] }}
           username: ${{ secrets.OCI_USER || 'ubuntu' }}
           key: ${{ secrets.OCI_SSH_KEY }}
           port: 22
-          script_stop: true # Para a execução imediatamente se qualquer comando falhar (set -e)
+          sync: true
+          debug: true
+          script_stop: true
           script: |
-            echo "========================================="
-            echo "🚀 INICIANDO DEPLOY AUTOMATIZADO"
-            echo "========================================="
+            set -e # Interrompe no primeiro erro
 
-            cd ~/advec-automation
+            echo "================ [ 1. TELEMETRIA DO HOST ] ================"
+            echo "Data/Hora: $(date)"
+            echo "Hostname: $(hostname)"
+            echo "Disk Usage: $(df -h / | tail -1 | awk '{print $5}') ocupado"
+            echo "RAM: $(free -h | grep Mem | awk '{print $3 "/" $2}')"
+            echo "=========================================================="
 
-            echo "📥 1/4 Atualizando código fonte (Sync com origin/main)..."
-            git fetch origin main
-            git reset --hard origin/main
+            cd ~/advec-automation || { echo "❌ Erro: Repo não encontrado na OCI"; exit 1; }
 
-            echo "🛑 2/4 Derrubando serviços em execução..."
-            docker compose down || true
+            echo "📥 2. Sync Git (Hard Reset)..."
+            git fetch origin main && git reset --hard origin/main
 
-            echo "🏗️ 3/4 Compilando nova imagem e subindo containers..."
+            echo "🛑 3. Ciclo de Vida do Container (Down/Up)..."
+            docker compose down --remove-orphans
+
+            # Streaming do Build diretamente no console do GitHub
             docker compose up -d --build
 
-            echo "🧹 4/4 Limpeza: Removendo imagens antigas para liberar espaço..."
-            docker image prune -af
+            echo "⏳ 4. Aguardando Estabilização (20s)..."
+            sleep 20
 
-            echo "========================================="
-            echo "✅ DEPLOY EFETUADO COM SUCESSO!"
+            echo "================ [ 5. MAPA DE RUNTIME ] ================"
+            echo "--- LOGS DE STARTUP (Últimas 40 linhas) ---"
+            docker compose logs --tail=40
 
-      - name: 🩺 Healthcheck & Container Status
-        if: success()
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.OCI_HOST }}
-          username: ${{ secrets.OCI_USER || 'ubuntu' }}
-          key: ${{ secrets.OCI_SSH_KEY }}
-          port: 22
-          script: |
-            echo "### Status Atual dos Containers na OCI:"
-            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep node-red || true
+            echo "--- MÉTRICAS DE RECURSOS EM TEMPO REAL ---"
+            docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
+
+            echo "================ [ 6. HEALTHCHECK SRE ] ================"
+            # Validação interna via Localhost
+            HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:${{ matrix.port }} || echo "000")
+
+            if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 302 ]; then
+              echo "✅ SUCCESS: Aplicação respondendo na porta ${{ matrix.port }} (Status: $HTTP_STATUS)"
+              echo "### ✅ Deploy OK em ${{ matrix.environment }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "::error::HEALTHCHECK FAILED! Status: $HTTP_STATUS"
+              echo "### ❌ Falha no Healthcheck em ${{ matrix.environment }}" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+
+            echo "🧹 7. Pruning e Otimização..."
+            docker image prune -f
+
+            echo "=========================================================="
+            echo "🚀 DEPLOY FINALIZADO COM SUCESSO"
